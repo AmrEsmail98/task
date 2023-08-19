@@ -1,0 +1,21 @@
+1-11
+2-15
+3-60 km/h
+4-FWFOJHO
+5-3
+6-24 seconds
+7-158
+8- $20
+9-Some widgets are blarks
+-------------------------------
+part 2
+
+1-To import a namespace
+2-$_FILE
+3- Defines how the width and height of an element are calculated 
+4-Control an element's stacking order
+5-git checkout -b <branch_name>
+6-git merge
+7-Hiding sensitive data in client-side JavaScript code
+8-Route::get('/users', 'UsersController@index')->name('users');
+9-Route caching

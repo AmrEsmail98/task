@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/jquery.fancybox.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <title>form</title>
+</head>
+
+<body>
+  <div class="container">
+    <form action="" class="form-main" id="myForm" enctype="multipart/form-data">
+      <div class="row">
+        <div class="col-md-4 col-12 mb-4">
+          <div class="main-input-cont mb-3 mt-4">
+            <h6 class="mb-2 font14">الاسم الاول</h6>
+            <input type="text" required class="main-input user-input" placeholder="برجاء ادخال الاسم الاول" />
+          </div>
+        </div>
+        <div class="col-md-4 col-12 mb-4">
+          <div class="main-input-cont mb-3 mt-4">
+            <h6 class="mb-2 font14">الاسم الاخير</h6>
+            <input type="text" required class="main-input user-input2" placeholder="برجاء ادخال الاسم الاخير" />
+          </div>
+        </div>
+        <div class="col-md-4 col-12 mb-4">
+          <div class="main-input-cont mb-3 mt-4">
+            <h6 class="mb-2 font14">ارفاق صور</h6>
+            <label for="filesNext_input" class="upload-main">
+              <input type="file" multiple hidden id="filesNext_input" class="heddenUploud files-input img-input"
+                data-input="filesNext" accept="image/*" value="" name="image" />
+              <div class="label-text">الرجاء ارفاق صورة</div>
+              <div class="upload-ico">
+                <i class="fa-solid fa-camera"></i>
+              </div>
+            </label>
+            <div class="uploaded__area" id="filesNext_cont"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex-center-main mb-3">
+        <button type="submit" class="main-btn up submit-btn">ارسال</button>
+      </div>
+    </form>
+  </div>
+  <script src="js/jquery-3.5.1.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+  <script src="js/jquery.fancybox.min.js"></script>
+
+  <!------------abload files------------->
+
+  <script>
+    function submitForm() {
+      var form = document.getElementById('myForm');
+      var formData = new FormData(form);
+
+      var csrfToken = document.querySelector('input[name="_token"]').value;
+      formData.append('_token', csrfToken);
+
+      var imageInput = form.querySelector('input[name="image"]');
+      var imageFile = imageInput.files[0];
+
+      if (imageFile) {
+        if (imageFile.type.match('image.*') && imageFile.size <= 2 * 1024 * 1024) {
+          formData.append('image', imageFile);
+
+          // Perform AJAX request to submit the form data
+          fetch('/submit-url', {
+            method: 'POST',
+            body: formData
+          })
+            .then(response => response.json())
+            .then(data => {
+              // Handle success response
+            })
+            .catch(error => {
+              // Handle errors
+            });
+        } else {
+          alert('Please select a valid image file (max 2MB)');
+        }
+      } else {
+        alert('Please select an image file');
+      }
+    }
+  </script>
+
+  <script>
+    let inputsFiles = {};
+    $(".files-input").on("change", function (event) {
+      let input = $(this).data("input");
+      const selectedFilesCont = document.getElementById(input + "_cont");
+      if (!!inputsFiles[input]) {
+        let files = new DataTransfer();
+        for (let i = 0; i < event.target.files.length; i++) {
+          files.items.add(event.target.files[i]);
+        }
+        for (let i = 0; i < inputsFiles[input].length; i++) {
+          files.items.add(inputsFiles[input][i]);
+        }
+        inputsFiles[input] = files.files;
+        selectedFilesCont.innerHTML = "";
+      } else {
+        inputsFiles[input] = event.target.files;
+      }
+      if (!!inputsFiles[input] && inputsFiles[input].length > 0) {
+        if ($(this).data("single") == true) {
+          selectedFilesCont.innerHTML = "";
+          inputsFiles[input] = event.target.files;
+        }
+        for (let i = 0; i < inputsFiles[input].length; i++) {
+          const fileType = inputsFiles[input][i].type.split("/")[0];
+          if (fileType === "image") {
+            let src = URL.createObjectURL(inputsFiles[input][i]);
+            $("#" + input + "_cont").append(` <div class="file_">
+                                                                                  <a data-fancybox="gallery" href="${src}">
+                                                                                      <img src="${src}" alt="">
+                                                                                  </a>
+                                                                                  <div class="remove_media" onclick="deleteFile(this ,'${inputsFiles[input][i].name}' ,'${input}')"><i class="fa-solid fa-xmark font13"></i></div>
+                                                                              </div>`);
+          }
+        
+          else {
+            $("#" + input + "_cont").append(`<div class="file_">
+                                                                                  <div class="docs_file">
+                                                                                      <div class="d-flex flex-column align-items-center justify-content-center h-100 p-2">
+                                                                                          <span class="font10">${inputsFiles[input][i].name}</span>
+                                                                                          <span><i class="far fa-file-pdf mr-1 ml-1"></i></span>
+                                                                                      </div>
+                                                                                  </div>
+                                                                                  <div class="remove_media" onclick="deleteFile(this ,'${inputsFiles[input][i].name}' ,'${input}')"><i class="fa-solid fa-xmark font13"></i></div>
+                                                                              </div>`);
+          }
+        }
+      }
+      event.target.files = inputsFiles[input];
+    });
+
+    function deleteFile(ele, name, input) {
+      let filesInput = document.getElementById(input + "_input");
+      let files = new DataTransfer();
+      let deleted = null;
+      for (let i = 0; i < filesInput.files.length; i++) {
+        if (filesInput.files[i].name == name && deleted != name) {
+          deleted = name;
+          continue;
+        }
+        files.items.add(filesInput.files[i]);
+      }
+      filesInput.files = files.files;
+      inputsFiles[input] = files.files;
+
+      // edit the number of parents to delete
+      $(ele).parent().remove();
+    }
+  </script>
+</body>
+
+</html>
